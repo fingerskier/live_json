@@ -25,31 +25,20 @@ module.exports = function(filepath='./config.json') {
       })
     })
   }
-  
-  config._default = function(name, value) {
-    let val = config[name]
-    
-    if (!val) {
-      config[name] = value
-      fs.writeFile(filepath, JSON.stringify(config), err=>{
-        if (err) console.error(err)
-      })
-    }
-    
-    return config[name]
-  }
-  
-  config._get = function(name) {
-    return config[name]
-  }
-  
-  config._set = function(name, value) {
-    config[name] = value
-    fs.writeFile(filepath, JSON.stringify(config), err=>{
-      console.log('configuration set', name, value)
-      if (err) console.error(err)
-    })
-  }
-  
-  return config
+
+  const thing = new Proxy(config, {
+    set: (obj, prop, value) => {
+      // obj[prop] = value;
+      storage.setItem(`${prefix}.${prop}`, JSON.stringify(value))
+      
+      return true
+    },
+    get: (obj, prop) => {
+      // return obj[prop];
+      return JSON.parse(storage.getItem(`${prefix}.${prop}`))
+    },
+  });
+}
+
+  return thing
 }
